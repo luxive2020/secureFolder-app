@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secure Folder Login</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="sidebar.css">
+  <script defer src="renderer.js"></script>
+  <style>
+    body,
+    html {
+      height: 100%;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, sans-serif;
+    }
+
+    .login-modal {
+      width: 300px;
+      padding: 20px;
+      background-color: #f4f4f4;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      border-radius: 10px;
+
+    }
+
+    .visible {
+      display: block;
+    }
+
+    .invisible {
+      display: none;
+    }
+
+
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="login-modal">
+    <h2>Enter Master Password</h2>
+    <input type="password" id="password" placeholder="Master Password" />
+    <button id="login-button">Login</button>
+  </div>
+
+  <!-- This is the app main body after successfully login in -->
+  <div class="content-body invisible">
+    <div id="app">
+      <button id="upload-folder">Upload Folder</button>
+      <ul id="folder-list">
+
+    </div>
+    <div class="nav-menu">
+      <!-- Add  search field-->
+
+
+      <!-- SIde Bar -->
+      <div id="status"></div>
+      <nav class="sidebar">
+        <div class="sidebar-link">
+          <img src="images/home.jpg">
+          <div>Home</div>
+        </div>
+        <div class="sidebar-link">
+          <img src="images/home.jpg">
+          <div>Explore</div>
+        </div>
+
+        <div class="sidebar-link">
+          <img src="images/settings.jpeg">
+          <div>Settings</div>
+        </div>
+
+        <div class="sidebar-link">
+          <img src="images/home.jpg">
+          <div>Library</div>
+        </div>
+      </nav>
+
+    </div>
+
+  </div>
+
+
+  </div>
+
+  <script>
+    const loginModal = document.querySelector('.login-modal')
+    const displayModal = document.querySelector('.content-body')
+
+    const loginButton = document.getElementById('login-button');
+    loginButton.addEventListener('click', () => {
+      const password = document.getElementById('password').value;
+      window.electron.checkPassword(password);
+
+      window.electron.onPasswordResult((event, isSuccess) => {
+        if (isSuccess) {
+          loginModal.classList.add('invisible')
+          displayModal.classList.remove('invisible')
+
+        } else {
+          alert('Access Denied! Closing app...');
+          window.close();  // Close the window/app if the password is wrong
+        }
+      });
+    });
+
+
+  </script>
+
+</body>
+
+</html>
