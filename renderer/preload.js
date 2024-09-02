@@ -4,9 +4,10 @@ const path = require('path')
 
 
 
-contextBridge.exposeInMainWorld('electron', {
-  openFolderDialog: () => ipcRenderer.invoke('open-folder-dialog'),
-  require: (module) => require(module),
+contextBridge.exposeInMainWorld('electronAPI', {
+  selectFolder: () => ipcRenderer.invoke('dialog:openFolder'),
+    saveFolder: (folder) => ipcRenderer.send('save-folder', folder),
+    onFoldersList: (callback) => ipcRenderer.on('folders-list', (event, folders) => callback(folders)),
 
   ipcRenderer: {
     on: (channel, listener) => {
