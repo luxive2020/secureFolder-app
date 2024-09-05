@@ -23,6 +23,7 @@
   "dependencies": {
     "keytar": "^7.9.0",
     "otplib": "^12.0.1",
+    "qrcode": "^1.5.4",
     "sqlite3": "^5.1.7",
     "sudo-prompt": "^9.2.1"
   }

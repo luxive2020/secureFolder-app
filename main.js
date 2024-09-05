@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const path = require('path');
 const crypto = require('crypto');
+const qrcode = require('qrcode');
 //const db = require('./database');
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('./data.db');
@@ -145,7 +146,15 @@ const totpSecret = authenticator.generateSecret();
                     console.error('Error saving folder:', err.message);
                     return;
                 }
-
+                // Generate QR code for the TOTP secret
+                qrcode.toDataURL(authenticator.keyuri(name, 'secureFolder-app'),(err,url)=>{
+                    if(err){
+                        console.error('Error generating QR code:', err.message);
+                        return;
+                    }
+                    // send the QR code URL to the renderer process
+                    event.sender.send('totp-qr-code', url);
+                });
 
                 // Retrieve and send the updated list of folders
                 getFolders((folders) => {
@@ -169,6 +178,7 @@ ipcMain.on('verify-totp', (event, folderId, enteredCode) =>{
 
 // Handle deleting folder from the database
 ipcMain.on('delete-folder', (event, folderPath) => {
+    
     console.log(`Deleting folder with path: ${folderPath}`);
 
     db.run(`DELETE FROM folders WHERE path = ?`, [folderPath], function(err){

@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Testing IPC communication
   verifyTotp: (folderId, enteredCode) => ipcRenderer.send('verify-totp',folderId, enteredCode),
   onTotpVerificationResult: (callback) => ipcRenderer.on('totp-verification-result',(event, isValid) => callback(isValid)),
+  onTotpQrCode: (callback) => ipcRenderer.on('totp-qr-code', (event, qrCodeUrl)=> callback(qrCodeUrl)),
 
   selectFolder: () => ipcRenderer.invoke('dialog:openFolder'),
   deleteFolder: (folderPath) => ipcRenderer.send('delete-folder', folderPath),  // Ensure the channel name matches

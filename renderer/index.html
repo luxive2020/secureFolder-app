@@ -70,6 +70,8 @@
     <button id="login-button">Login</button>
   </div>
 
+
+
   <!-- This is the app main body after successfully login in -->
   <div class="content-body invisible">
     <div id="app">
@@ -110,6 +112,17 @@
 
 
   </div>
+  <!-- add image tag to display the QR code: -->
+  <div id="totp-modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p>Scan the QR code with your TOTP app:</p>
+      <img id="totp-qr-code" src="" alt="QR Code" />
+      <input type="text" id="totp-input" placeholder="Enter TOTP" />
+      <button id="submit-totp">Submit</button>
+    </div>
+  </div>
+
 
   <script>
     const loginModal = document.querySelector('.login-modal')
