@@ -1,0 +1,55 @@
+<header class="header">
+    <div class="left-section">
+        <img class="hamburger-menu" src="icons/hamburger-menu.svg">
+        <img class="youtube-logo" src="icons/youtube-logo.svg">
+    </div>
+    <div class="middle-section">
+        <input class="search-bar" type="text" placeholder="Search">
+        <button class="search-button">
+            <img class="search-icon" src="icons/search.svg">
+            <div class="tooltip">Search</div>
+        </button>
+        <!-- Put position absolute inside position relative -->
+        <button class="voice-search-button">
+            <img class="voice-search-icon" src="icons/voice-search-icon.svg">
+            <div class="tooltip">Search with your voice</div>
+        </button>
+    </div>
+    <div class="right-section">
+        <div class="upload-icon-container">
+            <img class="upload-icon" src="icons/upload.svg">
+            <div class="tooltip">Create</div>
+        </div>
+        <img class="youtube-apps-icon" src="icons/youtube-apps.svg">
+        <div class="notifications-icon-container">
+            <img class="notifications-icon" src="icons/notifications.svg">
+            <div class="notifications-count">3</div>
+        </div>
+        <img class="current-user-picture" src="channel-pictures/my-channel.jpeg">
+    </div>
+</header>
+
+
+//Handle both success and failure in one function
+// window.electronAPI.onTotpVerificationResult((result)=>{
+// if(isValid && folderToUpload){
+// console.log('TOTP is valid, uploading folder:', folderToUpload);
+// // Save the folder only if the totp is valid
+// window.electronAPI.saveFolder(folderToUpload);
+// folderToUpload = null; //Reset after saving
+// alert('Access granted and folder uploaded.');
+// }else{
+// alert('Invalid TOTP. Folder will not be uploaded.');
+// }
+// });
+
+// Handle both success and failure in one function
+// window.electronAPI.onTotpVerificationResult((result) => {
+// if (result.success) {
+// console.log('TOTP verified successfully for folder:', result.folderId);
+// // Proceed to upload the folder
+// window.electronAPI.saveFolder(folderToUpload);
+// } else {
+// alert(`TOTP verification failed: ${result.message}`);
+// }
+// });

@@ -11,6 +11,12 @@ let mainWindow;
 let template = [
   
 ];
+// Create the window and retrieve folders when the app is ready
+app.whenReady().then(() => {
+    const menu = Menu.buildFromTemplate(template)
+    Menu.setApplicationMenu(menu)
+    createWindow();
+});
 
 
 // Create master password
@@ -25,8 +31,8 @@ function hashPassword(password) {
 // Function to create the main application window
 function createWindow() {
     mainWindow = new BrowserWindow({
-        width: 800,
-        height: 600,
+        width: 850,
+        height: 550,
         webPreferences: {
             sandbox: false, // Disable if it is enabled
             preload: path.join(__dirname, 'renderer/preload.js'),
@@ -77,13 +83,6 @@ db.serialize(() =>{
 })
 module.exports = db;
 
-// Create the window and retrieve folders when the app is ready
-app.whenReady().then(() => {
-    const menu = Menu.buildFromTemplate(template)
-    Menu.setApplicationMenu(menu)
-    createWindow();
-});
-
 // Quit the app when all windows are closed
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
@@ -115,15 +114,49 @@ ipcMain.handle('dialog:openFolder', async () => {
     });
 
     if (!folderPaths.canceled && folderPaths.filePaths.length > 0) {
-        return {
-            name: path.basename(folderPaths.filePaths[0]),
-            path: folderPaths.filePaths[0],
-        };
+    
+            const folderPath = folderPaths.filePaths[0];
+            const folderName = path.basename(folderPath);
+            //check if the folder already exists in the database
+            return new Promise((resolve, reject)=>{
+                db.get('SELECT id FROM folders WHERE path=?',[folderPath], (err,row)=>{
+                    if(err){
+                        reject(err);
+                    }
+                    if(row){
+                        //FOlder already exists, return its ID
+                        resolve({
+                            id: row.id,
+                            name: folderName,
+                            path: folderPath
+                        });
+                    }else{
+                        //Folder is new, return the name and path (id will be generated later)
+                        db.run('INSERT INTO folders (path, name) VALUES (?, ?)',[folderPath, folderName], function (inserErr){
+                          if(inserErr){
+                            reject(inserErr); 
+                          }else{
+                            // Return the newly inserted folder's Id
+                            resolve({
+                                id: this.lastID,
+                                name: folderName,
+                                path:folderPath
+                            });
+                          }
+                        
+                    });
+                }
+            });
+    
+        });
+    }else{
+        //Folder selection was canceled
+        return null;
     }
 });
 
-// Handle saving folder to the database
-// Handle saving folder to the database
+
+// Handle saving folder to the database after successful TOTP verification
 ipcMain.on('save-folder', (event, folder) => {
     const { name, path } = folder;
 
@@ -137,23 +170,23 @@ const totpSecret = authenticator.generateSecret();
             return;
         }
 
-        if (row.count >= 7) {
+        if (row.count >= 15) {
             event.reply('folder-limit-exceeded', 'You can only upload a maximum of 15 folders.');
         } else {
             // Save the folder only if the count is below the limit
-            db.run(`INSERT INTO folders (name, path,totp_secret) VALUES (?, ?,?)`, [name, path], function (err) {
+            db.run(`INSERT INTO folders (name, path,totp_secret) VALUES (?, ?,?)`, [name, path,totpSecret], function (err) {
                 if (err) {
                     console.error('Error saving folder:', err.message);
                     return;
                 }
                 // Generate QR code for the TOTP secret
-                qrcode.toDataURL(authenticator.keyuri(name, 'secureFolder-app'),(err,url)=>{
+                qrcode.toDataURL(authenticator.keyuri(name, 'secureFolder-app', totpSecret),(err,url)=>{
                     if(err){
                         console.error('Error generating QR code:', err.message);
                         return;
                     }
                     // send the QR code URL to the renderer process
-                    event.sender.send('totp-qr-code', url);
+                    event.sender.send('totp-qr-code', url, totpSecret);
                 });
 
                 // Retrieve and send the updated list of folders
@@ -165,15 +198,62 @@ const totpSecret = authenticator.generateSecret();
         }
     });
 });
-ipcMain.on('verify-totp', (event, folderId, enteredCode) =>{
-    db.get(`SELECT totp_secret FROM folders WHERE id = ?`, [folderId],(err,row)=>{
-        if(err) return console.error('Error retrieving TOTP secrets:', err.message);
-        const isValid = authenticator.check(enteredCode, row.totp_secret);
-        event.reply('totp-verification-result', isValid);
+
+ // Generate a new TOTP secret
+ipcMain.on('generate-totp-qr-code', (event)=>{
+   
+    const totpSecret = authenticator.generateSecret();
+
+    // Generate the QR code as a data URL
+    qrcode.toDataURL(totpSecret, (err, qrCodeUrl) =>{
+        if(err){
+            console.error('Error generating QR code:', err.message);
+            return;
+        }
+        // Send the QR code and secret back to the renderer process
+        
+        event.sender.send('totp-qr-code', qrCodeUrl, totpSecret);
+        console.log(totpSecret);
+    });
+});
+//Verify the TOTP code entered by the user
+ipcMain.handle('verify-totp', (event, folderId, enteredCode) => {
+    if (!folderId || !enteredCode) {
+        console.error('Missing folder ID or entered TOTP code.');
+        event.reply('totp-verification-failed', 'Invalid folder ID or TOTP code.');
+        return;
+    }
+
+    // Retrieve the TOTP secret from the database based on the folder ID
+    db.get('SELECT totp_secret FROM folders WHERE id = ?', [folderId], (err, row) => {
+        if (err || !row || !row.totp_secret) {
+            console.error('Failed to retrieve TOTP secret from the database.');
+            event.reply('totp-verification-failed', 'Failed to retrieve TOTP secret.');
+            return;
+        }
+
+        const totpSecret = row.totp_secret;
+
+        try {
+            const verified = authenticator.verify({
+                token: enteredCode,
+                secret: totpSecret,
+                
+            });
+        
+
+            if (verified) {
+                event.sender.send('totp-verification-success', 'TOTP verified successfully.',folderId);
+            } else {
+                event.sender.send('totp-verification-failed', 'Invalid TOTP code.');
+            }
+        } catch (error) {
+            console.error('Error verifying TOTP code:', error);
+            event.sender.send('totp-verification-failed', 'Error verifying TOTP code.');
+        }
     });
 });
 
-        
     
 
 // Handle deleting folder from the database
