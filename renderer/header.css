@@ -38,7 +38,10 @@
     margin-right: 35px;
     max-width: 500px;
     display: flex;
-    align-items: center;
+    align-items:center;
+    justify-content: center;
+   
+  
   }
   
   .search-bar {
@@ -57,17 +60,17 @@
   }
   
   .search-button {
-    height: 40px;
+    height: 60px;
     width: 66px;
-    background-color: rgb(240, 240, 240);
+    /* background-color: rgb(240, 240, 240); */
+    background-color: rebeccapurple;
     border-width: 1px;
     border-style: solid;
     border-color: rgb(192, 192, 192);
     margin-left: -1px;
     margin-right: 10px;
   }
-  
-  .search-button,
+ 
   .voice-search-button,
   .upload-icon-container {
     display: flex;

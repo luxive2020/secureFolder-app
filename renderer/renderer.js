@@ -104,26 +104,74 @@ window.electronAPI.onFolderLimitExceeded((message)=>{
 
 
 const addFolderToList = (id,name,path) => {
+
     const li = document.createElement('li');
-    li.textContent = `Name: ${name}, Path: ${path}`;
-    const openButton = document.createElement('button');
-    openButton.className = 'openBtn';
-    openButton.textContent = 'open';
-    openButton.addEventListener('click', ()=>{
+     li.textContent = `${path}`;
+    li.className = 'folder-path';
+    //li.textContent = `Name: ${name}, Path: ${path}`;
+    //Create a dropdown container
+    const dropdown = document.createElement('div');
+    dropdown.className = 'dropdown';
+
+    //Create the button that toggles the drop down menu
+    const dropdownBtn = document.createElement('button');
+    dropdownBtn.className = 'dropdown-btn';
+    dropdownBtn.textContent = 'Actions';
+
+    //Creat dropdown contents
+    const dropdownContent = document.createElement('div');
+    dropdownContent.className = 'dropdown-content';
+
+    //Creat 'open' option
+    const openOption = document.createElement('a');
+    openOption.href = '#';
+    openOption.textContent = 'Open';
+    openOption.addEventListener('click', () =>{
         openTotpModal(id);
     });
-    li.appendChild(openButton)
-    const deleteButton = document.createElement('button');
-    deleteButton.className = 'deleteBtn';
-    deleteButton.textContent = 'Delete';
-    deleteButton.addEventListener('click',()=>{
+
+    //Create "Delete" option
+    const deleteOption = document.createElement('a');
+    deleteOption.href = '#';
+    deleteOption.textContent = 'Delete';
+    deleteOption.addEventListener('click',()=>{
         console.log(`Attempting to delete folder: ${path}`);
-        window.electronAPI.deleteFolder(path);
-        
+        window.electronAPI.deleteFolder(path); // call the function  to delete the folder path
     });
-    li.appendChild(deleteButton);
-    
+
+    //Append options to the dropdown content
+    dropdownContent.appendChild(openOption);
+    dropdownContent.appendChild(deleteOption);
+
+    //Append the dropdown content and button to the dropdown container
+    dropdown.appendChild(dropdownBtn);
+    dropdown.appendChild(dropdownContent);
+    //Append the drop down to the list item
+    li.appendChild(dropdown);
+
+    //Append the drop dropdwon to the folder list
     folderList.appendChild(li);
+
+   
+    // const openButton = document.createElement('button');
+    // openButton.className = 'openBtn';
+    // openButton.textContent = 'open';
+    // openButton.addEventListener('click', ()=>{
+    //     openTotpModal(id);
+    // });
+    
+    // li.appendChild(openButton)
+    // const deleteButton = document.createElement('button');
+    // deleteButton.className = 'deleteBtn';
+    // deleteButton.textContent = 'Delete';
+    // deleteButton.addEventListener('click',()=>{
+    //     console.log(`Attempting to delete folder: ${path}`);
+    //     window.electronAPI.deleteFolder(path);
+        
+    // });
+    // li.appendChild(deleteButton);
+    
+    // folderList.appendChild(li);
 };
 
 // // FUnction to open the TOTP modal
